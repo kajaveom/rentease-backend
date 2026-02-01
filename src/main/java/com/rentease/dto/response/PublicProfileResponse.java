@@ -34,7 +34,7 @@ public class PublicProfileResponse {
                 .bio(user.getBio())
                 .location(user.getLocation())
                 .idVerified(user.isIdVerified())
-                .averageRating(user.getAverageRating())
+                .averageRating(user.getAverageRatingAsDouble())
                 .totalReviews(user.getTotalReviews())
                 .memberSince(user.getCreatedAt())
                 .build();

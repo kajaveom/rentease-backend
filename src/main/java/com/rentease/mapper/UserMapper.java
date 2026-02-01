@@ -18,7 +18,7 @@ public class UserMapper {
                 .location(user.getLocation())
                 .idVerified(user.isIdVerified())
                 .emailVerified(user.isEmailVerified())
-                .averageRating(user.getAverageRating())
+                .averageRating(user.getAverageRatingAsDouble())
                 .totalReviews(user.getTotalReviews())
                 .createdAt(user.getCreatedAt())
                 .build();
@@ -33,7 +33,7 @@ public class UserMapper {
                 .bio(user.getBio())
                 .location(user.getLocation())
                 .idVerified(user.isIdVerified())
-                .averageRating(user.getAverageRating())
+                .averageRating(user.getAverageRatingAsDouble())
                 .totalReviews(user.getTotalReviews())
                 .createdAt(user.getCreatedAt())
                 .build();

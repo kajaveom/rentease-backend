@@ -6,6 +6,7 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -74,8 +75,8 @@ public class User {
     @Column(name = "password_reset_expires")
     private LocalDateTime passwordResetExpires;
 
-    @Column(name = "average_rating")
-    private Double averageRating;
+    @Column(name = "average_rating", precision = 3, scale = 2)
+    private BigDecimal averageRating;
 
     @Column(name = "total_reviews")
     @Builder.Default
@@ -95,5 +96,9 @@ public class User {
 
     public String getPublicLastName() {
         return lastName != null && !lastName.isEmpty() ? lastName.charAt(0) + "." : "";
+    }
+
+    public Double getAverageRatingAsDouble() {
+        return averageRating != null ? averageRating.doubleValue() : null;
     }
 }

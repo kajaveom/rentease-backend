@@ -58,7 +58,7 @@ public class ConversationResponse {
                         .firstName(otherUser.getFirstName())
                         .lastName(otherUser.getLastName())
                         .avatarUrl(otherUser.getAvatarUrl())
-                        .idVerified(otherUser.getIdVerified())
+                        .idVerified(otherUser.isIdVerified())
                         .build())
                 .bookingId(conversation.getBooking() != null ? conversation.getBooking().getId() : null)
                 .lastMessagePreview(conversation.getLastMessagePreview())

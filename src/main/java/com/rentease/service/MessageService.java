@@ -49,7 +49,7 @@ public class MessageService {
 
         return PagedResponse.<ConversationResponse>builder()
                 .data(content)
-                .pagination(PagedResponse.PaginationInfo.builder()
+                .pagination(PagedResponse.Pagination.builder()
                         .page(conversations.getNumber())
                         .size(conversations.getSize())
                         .totalElements(conversations.getTotalElements())
@@ -90,7 +90,7 @@ public class MessageService {
 
         return PagedResponse.<MessageResponse>builder()
                 .data(content)
-                .pagination(PagedResponse.PaginationInfo.builder()
+                .pagination(PagedResponse.Pagination.builder()
                         .page(messages.getNumber())
                         .size(messages.getSize())
                         .totalElements(messages.getTotalElements())

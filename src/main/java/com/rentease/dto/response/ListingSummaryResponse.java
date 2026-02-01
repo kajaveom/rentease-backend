@@ -1,5 +1,6 @@
 package com.rentease.dto.response;
 
+import com.rentease.entity.Listing;
 import com.rentease.entity.enums.Category;
 import com.rentease.entity.enums.Condition;
 import lombok.AllArgsConstructor;
@@ -35,5 +36,25 @@ public class ListingSummaryResponse {
         private String firstName;
         private Boolean idVerified;
         private Double averageRating;
+    }
+
+    public static ListingSummaryResponse fromEntity(Listing listing) {
+        return ListingSummaryResponse.builder()
+                .id(listing.getId())
+                .title(listing.getTitle())
+                .category(listing.getCategory())
+                .pricePerDay(listing.getPricePerDay())
+                .depositAmount(listing.getDepositAmount())
+                .condition(listing.getCondition())
+                .pickupLocation(listing.getPickupLocation())
+                .available(listing.getAvailable())
+                .primaryImage(listing.getPrimaryImageUrl())
+                .owner(OwnerSummary.builder()
+                        .id(listing.getOwner().getId())
+                        .firstName(listing.getOwner().getFirstName())
+                        .idVerified(listing.getOwner().isIdVerified())
+                        .averageRating(listing.getOwner().getAverageRatingAsDouble())
+                        .build())
+                .build();
     }
 }

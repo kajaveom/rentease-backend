@@ -157,7 +157,7 @@ public class ReviewService {
 
         return PagedResponse.<ReviewResponse>builder()
                 .data(content)
-                .pagination(PagedResponse.PaginationInfo.builder()
+                .pagination(PagedResponse.Pagination.builder()
                         .page(page.getNumber())
                         .size(page.getSize())
                         .totalElements(page.getTotalElements())

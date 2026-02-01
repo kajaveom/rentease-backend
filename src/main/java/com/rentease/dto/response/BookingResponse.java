@@ -76,8 +76,8 @@ public class BookingResponse {
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
                 .avatarUrl(user.getAvatarUrl())
-                .idVerified(user.getIdVerified())
-                .averageRating(user.getAverageRating())
+                .idVerified(user.isIdVerified())
+                .averageRating(user.getAverageRatingAsDouble())
                 .totalReviews(user.getTotalReviews())
                 .build();
     }

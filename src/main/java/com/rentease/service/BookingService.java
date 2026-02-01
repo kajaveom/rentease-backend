@@ -257,7 +257,7 @@ public class BookingService {
 
         return PagedResponse.<BookingResponse>builder()
                 .data(content)
-                .pagination(PagedResponse.PaginationInfo.builder()
+                .pagination(PagedResponse.Pagination.builder()
                         .page(page.getNumber())
                         .size(page.getSize())
                         .totalElements(page.getTotalElements())

@@ -81,7 +81,7 @@ public class MessageController {
     ) {
         if (request.getListingId() == null) {
             return ResponseEntity.badRequest().body(
-                    ApiResponse.error("Listing ID is required to start a conversation")
+                    ApiResponse.error("BAD_REQUEST", "Listing ID is required to start a conversation")
             );
         }
 
