@@ -1,5 +1,6 @@
 package com.rentease.controller;
 
+import com.rentease.dto.request.GoogleAuthRequest;
 import com.rentease.dto.request.LoginRequest;
 import com.rentease.dto.request.RefreshTokenRequest;
 import com.rentease.dto.request.RegisterRequest;
@@ -34,6 +35,12 @@ public class AuthController {
     @PostMapping("/refresh")
     public ResponseEntity<ApiResponse<AuthResponse>> refreshToken(@Valid @RequestBody RefreshTokenRequest request) {
         AuthResponse response = authService.refreshToken(request);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @PostMapping("/google")
+    public ResponseEntity<ApiResponse<AuthResponse>> googleAuth(@Valid @RequestBody GoogleAuthRequest request) {
+        AuthResponse response = authService.googleAuth(request);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 }
