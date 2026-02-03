@@ -8,6 +8,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -45,4 +47,7 @@ public class CreateListingRequest {
     @NotBlank(message = "Pickup location is required")
     @Size(max = 200, message = "Pickup location must be less than 200 characters")
     private String pickupLocation;
+
+    @Size(max = 10, message = "Maximum 10 images allowed")
+    private List<String> imageUrls;
 }

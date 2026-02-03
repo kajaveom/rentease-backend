@@ -17,6 +17,12 @@ spring:
     enabled: true
     baseline-on-migrate: true
 
+app:
+  cloudinary:
+    cloud-name: dhizqc7xy
+    api-key: 643262287136738
+    api-secret: OUQIHNrPs1vPgOi7XuL_2pFCxKU
+
 logging:
   level:
     com.rentease: DEBUG

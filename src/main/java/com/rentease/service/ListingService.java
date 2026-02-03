@@ -57,6 +57,20 @@ public class ListingService {
                 .build();
 
         listing = listingRepository.save(listing);
+
+        // Add images if provided
+        if (request.getImageUrls() != null && !request.getImageUrls().isEmpty()) {
+            for (int i = 0; i < request.getImageUrls().size(); i++) {
+                ListingImage image = ListingImage.builder()
+                        .listing(listing)
+                        .imageUrl(request.getImageUrls().get(i))
+                        .displayOrder(i)
+                        .build();
+                listing.addImage(image);
+            }
+            listing = listingRepository.save(listing);
+        }
+
         log.info("Listing created: {} by user {}", listing.getId(), userId);
 
         return listingMapper.toResponse(listing);
@@ -171,6 +185,22 @@ public class ListingService {
         if (request.getModel() != null) listing.setModel(request.getModel());
         if (request.getPickupLocation() != null) listing.setPickupLocation(request.getPickupLocation());
         if (request.getAvailable() != null) listing.setAvailable(request.getAvailable());
+
+        // Update images if provided (replace all existing images)
+        if (request.getImageUrls() != null) {
+            // Clear existing images
+            listing.getImages().clear();
+
+            // Add new images
+            for (int i = 0; i < request.getImageUrls().size(); i++) {
+                ListingImage image = ListingImage.builder()
+                        .listing(listing)
+                        .imageUrl(request.getImageUrls().get(i))
+                        .displayOrder(i)
+                        .build();
+                listing.addImage(image);
+            }
+        }
 
         listing = listingRepository.save(listing);
         log.info("Listing updated: {}", listingId);
