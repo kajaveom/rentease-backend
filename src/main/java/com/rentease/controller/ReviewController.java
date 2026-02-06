@@ -28,16 +28,15 @@ public class ReviewController {
     @PostMapping("/bookings/{bookingId}/reviews")
     public ResponseEntity<ApiResponse<ReviewResponse>> createReview(
             @CurrentUser UserPrincipal currentUser,
-            @PathVariable UUID bookingId,
-            @Valid @RequestBody CreateReviewRequest request
-    ) {
+            @PathVariable("bookingId") UUID bookingId,
+            @Valid @RequestBody CreateReviewRequest request) {
         ReviewResponse response = reviewService.createReview(currentUser.getId(), bookingId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response));
     }
 
     // Get a specific review
     @GetMapping("/reviews/{id}")
-    public ResponseEntity<ApiResponse<ReviewResponse>> getReview(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<ReviewResponse>> getReview(@PathVariable("id") UUID id) {
         ReviewResponse response = reviewService.getReview(id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -45,17 +44,16 @@ public class ReviewController {
     // Get reviews for a listing
     @GetMapping("/listings/{listingId}/reviews")
     public ResponseEntity<PagedResponse<ReviewResponse>> getListingReviews(
-            @PathVariable UUID listingId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
-    ) {
+            @PathVariable("listingId") UUID listingId,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size) {
         PagedResponse<ReviewResponse> response = reviewService.getListingReviews(listingId, page, size);
         return ResponseEntity.ok(response);
     }
 
     // Get review stats for a listing
     @GetMapping("/listings/{listingId}/reviews/stats")
-    public ResponseEntity<Map<String, Object>> getListingReviewStats(@PathVariable UUID listingId) {
+    public ResponseEntity<Map<String, Object>> getListingReviewStats(@PathVariable("listingId") UUID listingId) {
         Map<String, Object> stats = reviewService.getListingReviewStats(listingId);
         return ResponseEntity.ok(stats);
     }
@@ -63,10 +61,9 @@ public class ReviewController {
     // Get reviews for a user (as reviewee)
     @GetMapping("/users/{userId}/reviews")
     public ResponseEntity<PagedResponse<ReviewResponse>> getUserReviews(
-            @PathVariable UUID userId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
-    ) {
+            @PathVariable("userId") UUID userId,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size) {
         PagedResponse<ReviewResponse> response = reviewService.getUserReviews(userId, page, size);
         return ResponseEntity.ok(response);
     }
@@ -75,9 +72,8 @@ public class ReviewController {
     @GetMapping("/users/me/reviews")
     public ResponseEntity<PagedResponse<ReviewResponse>> getMyReviews(
             @CurrentUser UserPrincipal currentUser,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
-    ) {
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size) {
         PagedResponse<ReviewResponse> response = reviewService.getMyReviews(currentUser.getId(), page, size);
         return ResponseEntity.ok(response);
     }
@@ -86,9 +82,8 @@ public class ReviewController {
     @PostMapping("/reviews/{id}/response")
     public ResponseEntity<ApiResponse<ReviewResponse>> addOwnerResponse(
             @CurrentUser UserPrincipal currentUser,
-            @PathVariable UUID id,
-            @Valid @RequestBody ReviewResponseRequest request
-    ) {
+            @PathVariable("id") UUID id,
+            @Valid @RequestBody ReviewResponseRequest request) {
         ReviewResponse response = reviewService.addOwnerResponse(currentUser.getId(), id, request);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -97,8 +92,7 @@ public class ReviewController {
     @GetMapping("/bookings/{bookingId}/can-review")
     public ResponseEntity<Map<String, Boolean>> canReviewBooking(
             @CurrentUser UserPrincipal currentUser,
-            @PathVariable UUID bookingId
-    ) {
+            @PathVariable("bookingId") UUID bookingId) {
         boolean canReview = reviewService.canReviewBooking(currentUser.getId(), bookingId);
         return ResponseEntity.ok(Map.of("canReview", canReview));
     }

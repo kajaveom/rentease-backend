@@ -22,8 +22,7 @@ public class ImageController {
     @PostMapping("/listings")
     public ResponseEntity<ApiResponse<String>> uploadListingImage(
             @CurrentUser UserPrincipal currentUser,
-            @RequestParam("file") MultipartFile file
-    ) {
+            @RequestParam("file") MultipartFile file) {
         String imageUrl = imageService.uploadListingImage(file);
         return ResponseEntity.ok(ApiResponse.success(imageUrl, "Image uploaded successfully"));
     }
@@ -31,8 +30,7 @@ public class ImageController {
     @PostMapping("/listings/multiple")
     public ResponseEntity<ApiResponse<List<String>>> uploadMultipleListingImages(
             @CurrentUser UserPrincipal currentUser,
-            @RequestParam("files") MultipartFile[] files
-    ) {
+            @RequestParam("files") MultipartFile[] files) {
         List<String> imageUrls = new ArrayList<>();
         for (MultipartFile file : files) {
             String imageUrl = imageService.uploadListingImage(file);
@@ -44,8 +42,7 @@ public class ImageController {
     @PostMapping("/avatar")
     public ResponseEntity<ApiResponse<String>> uploadAvatar(
             @CurrentUser UserPrincipal currentUser,
-            @RequestParam("file") MultipartFile file
-    ) {
+            @RequestParam("file") MultipartFile file) {
         String imageUrl = imageService.uploadAvatarImage(file);
         return ResponseEntity.ok(ApiResponse.success(imageUrl, "Avatar uploaded successfully"));
     }
@@ -53,8 +50,7 @@ public class ImageController {
     @PostMapping("/id-document")
     public ResponseEntity<ApiResponse<String>> uploadIdDocument(
             @CurrentUser UserPrincipal currentUser,
-            @RequestParam("file") MultipartFile file
-    ) {
+            @RequestParam("file") MultipartFile file) {
         String imageUrl = imageService.uploadIdDocument(file);
         return ResponseEntity.ok(ApiResponse.success(imageUrl, "Document uploaded successfully"));
     }
@@ -62,8 +58,7 @@ public class ImageController {
     @DeleteMapping
     public ResponseEntity<ApiResponse<Void>> deleteImage(
             @CurrentUser UserPrincipal currentUser,
-            @RequestParam("url") String imageUrl
-    ) {
+            @RequestParam("url") String imageUrl) {
         imageService.deleteImage(imageUrl);
         return ResponseEntity.ok(ApiResponse.success(null, "Image deleted successfully"));
     }

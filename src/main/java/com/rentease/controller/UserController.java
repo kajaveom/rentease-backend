@@ -34,8 +34,7 @@ public class UserController {
     @PatchMapping("/me")
     public ResponseEntity<ApiResponse<UserResponse>> updateProfile(
             @CurrentUser UserPrincipal currentUser,
-            @Valid @RequestBody UpdateProfileRequest request
-    ) {
+            @Valid @RequestBody UpdateProfileRequest request) {
         UserResponse response = userService.updateProfile(currentUser.getId(), request);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -43,37 +42,33 @@ public class UserController {
     @GetMapping("/me/listings")
     public ResponseEntity<PagedResponse<ListingSummaryResponse>> getMyListings(
             @CurrentUser UserPrincipal currentUser,
-            @RequestParam(required = false, defaultValue = "0") int page,
-            @RequestParam(required = false, defaultValue = "20") int size
-    ) {
+            @RequestParam(value = "page", required = false, defaultValue = "0") int page,
+            @RequestParam(value = "size", required = false, defaultValue = "20") int size) {
         PagedResponse<ListingSummaryResponse> response = listingService.getMyListings(
-                currentUser.getId(), page, size
-        );
+                currentUser.getId(), page, size);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<PublicProfileResponse>> getUser(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<PublicProfileResponse>> getUser(@PathVariable("id") UUID id) {
         PublicProfileResponse response = userService.getPublicProfile(id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @GetMapping("/{id}/listings")
     public ResponseEntity<PagedResponse<ListingSummaryResponse>> getUserListings(
-            @PathVariable UUID id,
-            @RequestParam(required = false, defaultValue = "0") int page,
-            @RequestParam(required = false, defaultValue = "20") int size
-    ) {
+            @PathVariable("id") UUID id,
+            @RequestParam(value = "page", required = false, defaultValue = "0") int page,
+            @RequestParam(value = "size", required = false, defaultValue = "20") int size) {
         PagedResponse<ListingSummaryResponse> response = listingService.getUserListings(id, page, size);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{id}/reviews")
     public ResponseEntity<PagedResponse<ReviewResponse>> getUserReviews(
-            @PathVariable UUID id,
-            @RequestParam(required = false, defaultValue = "0") int page,
-            @RequestParam(required = false, defaultValue = "10") int size
-    ) {
+            @PathVariable("id") UUID id,
+            @RequestParam(value = "page", required = false, defaultValue = "0") int page,
+            @RequestParam(value = "size", required = false, defaultValue = "10") int size) {
         PagedResponse<ReviewResponse> response = reviewService.getUserReviews(id, page, size);
         return ResponseEntity.ok(response);
     }
@@ -81,8 +76,7 @@ public class UserController {
     @PostMapping("/me/change-password")
     public ResponseEntity<ApiResponse<Void>> changePassword(
             @CurrentUser UserPrincipal currentUser,
-            @Valid @RequestBody ChangePasswordRequest request
-    ) {
+            @Valid @RequestBody ChangePasswordRequest request) {
         userService.changePassword(currentUser.getId(), request);
         return ResponseEntity.ok(ApiResponse.success(null, "Password changed successfully"));
     }
@@ -95,8 +89,7 @@ public class UserController {
 
     @GetMapping("/me/verification")
     public ResponseEntity<ApiResponse<IdVerificationResponse>> getVerificationStatus(
-            @CurrentUser UserPrincipal currentUser
-    ) {
+            @CurrentUser UserPrincipal currentUser) {
         IdVerificationResponse response = userService.getVerificationStatus(currentUser.getId());
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -104,16 +97,14 @@ public class UserController {
     @PostMapping("/me/verification")
     public ResponseEntity<ApiResponse<IdVerificationResponse>> submitVerification(
             @CurrentUser UserPrincipal currentUser,
-            @Valid @RequestBody IdVerificationRequest request
-    ) {
+            @Valid @RequestBody IdVerificationRequest request) {
         IdVerificationResponse response = userService.submitVerification(currentUser.getId(), request);
         return ResponseEntity.ok(ApiResponse.success(response, "Verification submitted successfully"));
     }
 
     @DeleteMapping("/me/verification")
     public ResponseEntity<ApiResponse<IdVerificationResponse>> cancelVerification(
-            @CurrentUser UserPrincipal currentUser
-    ) {
+            @CurrentUser UserPrincipal currentUser) {
         IdVerificationResponse response = userService.cancelVerification(currentUser.getId());
         return ResponseEntity.ok(ApiResponse.success(response, "Verification cancelled"));
     }

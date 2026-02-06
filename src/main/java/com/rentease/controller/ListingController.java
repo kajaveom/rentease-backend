@@ -27,30 +27,27 @@ public class ListingController {
     @PostMapping
     public ResponseEntity<ApiResponse<ListingResponse>> createListing(
             @CurrentUser UserPrincipal currentUser,
-            @Valid @RequestBody CreateListingRequest request
-    ) {
+            @Valid @RequestBody CreateListingRequest request) {
         ListingResponse response = listingService.createListing(currentUser.getId(), request);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response));
     }
 
     @GetMapping
     public ResponseEntity<PagedResponse<ListingSummaryResponse>> getListings(
-            @RequestParam(required = false) String category,
-            @RequestParam(required = false) String q,
-            @RequestParam(required = false) Integer minPrice,
-            @RequestParam(required = false) Integer maxPrice,
-            @RequestParam(required = false, defaultValue = "newest") String sort,
-            @RequestParam(required = false, defaultValue = "0") int page,
-            @RequestParam(required = false, defaultValue = "20") int size
-    ) {
+            @RequestParam(value = "category", required = false) String category,
+            @RequestParam(value = "q", required = false) String q,
+            @RequestParam(value = "minPrice", required = false) Integer minPrice,
+            @RequestParam(value = "maxPrice", required = false) Integer maxPrice,
+            @RequestParam(value = "sort", required = false, defaultValue = "newest") String sort,
+            @RequestParam(value = "page", required = false, defaultValue = "0") int page,
+            @RequestParam(value = "size", required = false, defaultValue = "20") int size) {
         PagedResponse<ListingSummaryResponse> response = listingService.getListings(
-                category, q, minPrice, maxPrice, sort, page, size
-        );
+                category, q, minPrice, maxPrice, sort, page, size);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<ListingResponse>> getListing(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<ListingResponse>> getListing(@PathVariable("id") UUID id) {
         ListingResponse response = listingService.getListingById(id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -58,9 +55,8 @@ public class ListingController {
     @PatchMapping("/{id}")
     public ResponseEntity<ApiResponse<ListingResponse>> updateListing(
             @CurrentUser UserPrincipal currentUser,
-            @PathVariable UUID id,
-            @Valid @RequestBody UpdateListingRequest request
-    ) {
+            @PathVariable("id") UUID id,
+            @Valid @RequestBody UpdateListingRequest request) {
         ListingResponse response = listingService.updateListing(currentUser.getId(), id, request);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -68,8 +64,7 @@ public class ListingController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteListing(
             @CurrentUser UserPrincipal currentUser,
-            @PathVariable UUID id
-    ) {
+            @PathVariable("id") UUID id) {
         listingService.deleteListing(currentUser.getId(), id);
         return ResponseEntity.noContent().build();
     }
@@ -77,10 +72,9 @@ public class ListingController {
     @PostMapping("/{id}/images")
     public ResponseEntity<ApiResponse<ListingResponse>> addImage(
             @CurrentUser UserPrincipal currentUser,
-            @PathVariable UUID id,
-            @RequestParam String imageUrl,
-            @RequestParam String publicId
-    ) {
+            @PathVariable("id") UUID id,
+            @RequestParam("imageUrl") String imageUrl,
+            @RequestParam("publicId") String publicId) {
         ListingResponse response = listingService.addImage(currentUser.getId(), id, imageUrl, publicId);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response));
     }
@@ -88,9 +82,8 @@ public class ListingController {
     @DeleteMapping("/{listingId}/images/{imageId}")
     public ResponseEntity<Void> deleteImage(
             @CurrentUser UserPrincipal currentUser,
-            @PathVariable UUID listingId,
-            @PathVariable UUID imageId
-    ) {
+            @PathVariable("listingId") UUID listingId,
+            @PathVariable("imageId") UUID imageId) {
         listingService.deleteImage(currentUser.getId(), listingId, imageId);
         return ResponseEntity.noContent().build();
     }

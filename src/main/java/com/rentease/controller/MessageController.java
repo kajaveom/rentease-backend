@@ -22,94 +22,84 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class MessageController {
 
-    private final MessageService messageService;
+        private final MessageService messageService;
 
-    // Get all conversations for current user
-    @GetMapping("/conversations")
-    public ResponseEntity<PagedResponse<ConversationResponse>> getConversations(
-            @CurrentUser UserPrincipal currentUser,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size
-    ) {
-        PagedResponse<ConversationResponse> response = messageService.getConversations(
-                currentUser.getId(), page, size
-        );
-        return ResponseEntity.ok(response);
-    }
-
-    // Get a specific conversation
-    @GetMapping("/conversations/{id}")
-    public ResponseEntity<ApiResponse<ConversationResponse>> getConversation(
-            @CurrentUser UserPrincipal currentUser,
-            @PathVariable UUID id
-    ) {
-        ConversationResponse response = messageService.getConversation(currentUser.getId(), id);
-        return ResponseEntity.ok(ApiResponse.success(response));
-    }
-
-    // Get messages in a conversation
-    @GetMapping("/conversations/{id}/messages")
-    public ResponseEntity<PagedResponse<MessageResponse>> getMessages(
-            @CurrentUser UserPrincipal currentUser,
-            @PathVariable UUID id,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "50") int size
-    ) {
-        PagedResponse<MessageResponse> response = messageService.getMessages(
-                currentUser.getId(), id, page, size
-        );
-        return ResponseEntity.ok(response);
-    }
-
-    // Send a message to an existing conversation
-    @PostMapping("/conversations/{id}/messages")
-    public ResponseEntity<ApiResponse<MessageResponse>> sendMessage(
-            @CurrentUser UserPrincipal currentUser,
-            @PathVariable UUID id,
-            @Valid @RequestBody SendMessageRequest request
-    ) {
-        MessageResponse response = messageService.sendMessage(currentUser.getId(), id, request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response));
-    }
-
-    // Start a new conversation with a user about a listing
-    @PostMapping("/users/{recipientId}/conversations")
-    public ResponseEntity<ApiResponse<ConversationResponse>> startConversation(
-            @CurrentUser UserPrincipal currentUser,
-            @PathVariable UUID recipientId,
-            @Valid @RequestBody SendMessageRequest request
-    ) {
-        if (request.getListingId() == null) {
-            return ResponseEntity.badRequest().body(
-                    ApiResponse.error("BAD_REQUEST", "Listing ID is required to start a conversation")
-            );
+        // Get all conversations for current user
+        @GetMapping("/conversations")
+        public ResponseEntity<PagedResponse<ConversationResponse>> getConversations(
+                        @CurrentUser UserPrincipal currentUser,
+                        @RequestParam(value = "page", defaultValue = "0") int page,
+                        @RequestParam(value = "size", defaultValue = "20") int size) {
+                PagedResponse<ConversationResponse> response = messageService.getConversations(
+                                currentUser.getId(), page, size);
+                return ResponseEntity.ok(response);
         }
 
-        ConversationResponse response = messageService.startConversation(
-                currentUser.getId(),
-                recipientId,
-                request.getListingId(),
-                request.getContent()
-        );
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response));
-    }
+        // Get a specific conversation
+        @GetMapping("/conversations/{id}")
+        public ResponseEntity<ApiResponse<ConversationResponse>> getConversation(
+                        @CurrentUser UserPrincipal currentUser,
+                        @PathVariable("id") UUID id) {
+                ConversationResponse response = messageService.getConversation(currentUser.getId(), id);
+                return ResponseEntity.ok(ApiResponse.success(response));
+        }
 
-    // Mark messages in a conversation as read
-    @PostMapping("/conversations/{id}/read")
-    public ResponseEntity<Void> markAsRead(
-            @CurrentUser UserPrincipal currentUser,
-            @PathVariable UUID id
-    ) {
-        messageService.markAsRead(currentUser.getId(), id);
-        return ResponseEntity.ok().build();
-    }
+        // Get messages in a conversation
+        @GetMapping("/conversations/{id}/messages")
+        public ResponseEntity<PagedResponse<MessageResponse>> getMessages(
+                        @CurrentUser UserPrincipal currentUser,
+                        @PathVariable("id") UUID id,
+                        @RequestParam(value = "page", defaultValue = "0") int page,
+                        @RequestParam(value = "size", defaultValue = "50") int size) {
+                PagedResponse<MessageResponse> response = messageService.getMessages(
+                                currentUser.getId(), id, page, size);
+                return ResponseEntity.ok(response);
+        }
 
-    // Get unread message count
-    @GetMapping("/messages/unread-count")
-    public ResponseEntity<Map<String, Long>> getUnreadCount(
-            @CurrentUser UserPrincipal currentUser
-    ) {
-        long count = messageService.getUnreadCount(currentUser.getId());
-        return ResponseEntity.ok(Map.of("count", count));
-    }
+        // Send a message to an existing conversation
+        @PostMapping("/conversations/{id}/messages")
+        public ResponseEntity<ApiResponse<MessageResponse>> sendMessage(
+                        @CurrentUser UserPrincipal currentUser,
+                        @PathVariable("id") UUID id,
+                        @Valid @RequestBody SendMessageRequest request) {
+                MessageResponse response = messageService.sendMessage(currentUser.getId(), id, request);
+                return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response));
+        }
+
+        // Start a new conversation with a user about a listing
+        @PostMapping("/users/{recipientId}/conversations")
+        public ResponseEntity<ApiResponse<ConversationResponse>> startConversation(
+                        @CurrentUser UserPrincipal currentUser,
+                        @PathVariable("recipientId") UUID recipientId,
+                        @Valid @RequestBody SendMessageRequest request) {
+                if (request.getListingId() == null) {
+                        return ResponseEntity.badRequest().body(
+                                        ApiResponse.error("BAD_REQUEST",
+                                                        "Listing ID is required to start a conversation"));
+                }
+
+                ConversationResponse response = messageService.startConversation(
+                                currentUser.getId(),
+                                recipientId,
+                                request.getListingId(),
+                                request.getContent());
+                return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response));
+        }
+
+        // Mark messages in a conversation as read
+        @PostMapping("/conversations/{id}/read")
+        public ResponseEntity<Void> markAsRead(
+                        @CurrentUser UserPrincipal currentUser,
+                        @PathVariable("id") UUID id) {
+                messageService.markAsRead(currentUser.getId(), id);
+                return ResponseEntity.ok().build();
+        }
+
+        // Get unread message count
+        @GetMapping("/messages/unread-count")
+        public ResponseEntity<Map<String, Long>> getUnreadCount(
+                        @CurrentUser UserPrincipal currentUser) {
+                long count = messageService.getUnreadCount(currentUser.getId());
+                return ResponseEntity.ok(Map.of("count", count));
+        }
 }
