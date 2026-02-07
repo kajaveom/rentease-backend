@@ -42,6 +42,28 @@ spring:
 
 server:
   port: ${PORT:8080}
+  shutdown: graceful  # Enable graceful shutdown
+
+# Spring Boot Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when_authorized
+      probes:
+        enabled: true  # Kubernetes liveness/readiness probes
+  info:
+    env:
+      enabled: true
+  health:
+    db:
+      enabled: true
+    diskspace:
+      enabled: true
 
 # Application-specific configuration
 app:

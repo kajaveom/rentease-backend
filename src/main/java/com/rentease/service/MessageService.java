@@ -33,6 +33,7 @@ public class MessageService {
     private final MessageRepository messageRepository;
     private final UserRepository userRepository;
     private final ListingRepository listingRepository;
+    private final EmailService emailService;
 
     @Transactional(readOnly = true)
     public PagedResponse<ConversationResponse> getConversations(UUID userId, int page, int size) {
@@ -118,6 +119,13 @@ public class MessageService {
                 .build();
 
         Message saved = messageRepository.save(message);
+
+        // Send email notification to the recipient
+        User recipient = conversation.getParticipant1().getId().equals(senderId)
+                ? conversation.getParticipant2()
+                : conversation.getParticipant1();
+        emailService.sendNewMessageEmail(recipient, sender, conversation.getListing().getTitle());
+
         return MessageResponse.fromEntity(saved);
     }
 
@@ -174,6 +182,9 @@ public class MessageService {
                 .content(initialMessage)
                 .build();
         messageRepository.save(message);
+
+        // Send email notification to the recipient
+        emailService.sendNewMessageEmail(recipient, sender, listing.getTitle());
 
         return ConversationResponse.fromEntity(savedConversation, senderId, 0L);
     }

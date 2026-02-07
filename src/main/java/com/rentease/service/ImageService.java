@@ -30,7 +30,7 @@ public class ImageService {
 
     private static final long MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
-    public String uploadImage(MultipartFile file, String folder) {
+    public String uploadImage(MultipartFile file, String folder, int maxWidth, String quality) {
         validateFile(file);
 
         try {
@@ -39,7 +39,14 @@ public class ImageService {
             Map<String, Object> options = ObjectUtils.asMap(
                     "public_id", publicId,
                     "folder", "rentease",
-                    "resource_type", "image"
+                    "resource_type", "image",
+                    // Optimization transformations
+                    "transformation", ObjectUtils.asMap(
+                            "quality", quality,
+                            "fetch_format", "auto",  // Automatically serve WebP/AVIF
+                            "width", maxWidth,
+                            "crop", "limit"          // Only resize if larger than maxWidth
+                    )
             );
 
             Map<?, ?> result = cloudinary.uploader().upload(file.getBytes(), options);
@@ -55,15 +62,18 @@ public class ImageService {
     }
 
     public String uploadListingImage(MultipartFile file) {
-        return uploadImage(file, "listings");
+        // Listing images: max 1200px wide, auto quality
+        return uploadImage(file, "listings", 1200, "auto:good");
     }
 
     public String uploadAvatarImage(MultipartFile file) {
-        return uploadImage(file, "avatars");
+        // Avatar images: max 400px wide, auto quality
+        return uploadImage(file, "avatars", 400, "auto:good");
     }
 
     public String uploadIdDocument(MultipartFile file) {
-        return uploadImage(file, "id-documents");
+        // ID documents: max 1600px for readability, higher quality
+        return uploadImage(file, "id-documents", 1600, "auto:best");
     }
 
     public void deleteImage(String imageUrl) {

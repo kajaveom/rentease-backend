@@ -68,7 +68,7 @@ public interface BookingRepository extends JpaRepository<Booking, UUID> {
     // Get booked dates for a listing (for calendar display)
     @Query("SELECT b FROM Booking b " +
             "WHERE b.listing.id = :listingId " +
-            "AND b.status IN ('APPROVED', 'PAID', 'ACTIVE') " +
+            "AND b.status IN ('APPROVED', 'ACTIVE') " +
             "AND b.endDate >= :fromDate")
     List<Booking> findActiveBookingsForListing(
             @Param("listingId") UUID listingId,

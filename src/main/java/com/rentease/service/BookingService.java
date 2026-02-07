@@ -8,6 +8,7 @@ import com.rentease.entity.Booking;
 import com.rentease.entity.Listing;
 import com.rentease.entity.User;
 import com.rentease.entity.enums.BookingStatus;
+import com.rentease.entity.enums.NotificationType;
 import com.rentease.exception.BadRequestException;
 import com.rentease.exception.ForbiddenException;
 import com.rentease.exception.ResourceNotFoundException;
@@ -32,8 +33,8 @@ public class BookingService {
     private final BookingRepository bookingRepository;
     private final ListingRepository listingRepository;
     private final UserRepository userRepository;
-
-    private static final double SERVICE_FEE_RATE = 0.10; // 10% service fee
+    private final NotificationService notificationService;
+    private final EmailService emailService;
 
     @Transactional
     public BookingResponse createBooking(UUID renterId, UUID listingId, CreateBookingRequest request) {
@@ -58,9 +59,9 @@ public class BookingService {
 
         // Check for overlapping bookings
         List<BookingStatus> activeStatuses = Arrays.asList(
-                BookingStatus.APPROVED, BookingStatus.PAID, BookingStatus.ACTIVE
-        );
-        if (bookingRepository.hasOverlappingBookings(listingId, request.getStartDate(), request.getEndDate(), activeStatuses)) {
+                BookingStatus.APPROVED, BookingStatus.ACTIVE);
+        if (bookingRepository.hasOverlappingBookings(listingId, request.getStartDate(), request.getEndDate(),
+                activeStatuses)) {
             throw new BadRequestException("The selected dates overlap with an existing booking");
         }
 
@@ -68,10 +69,9 @@ public class BookingService {
         User renter = userRepository.findById(renterId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        // Calculate pricing
+        // Calculate pricing (estimate only - no actual payment)
         int totalDays = (int) (request.getEndDate().toEpochDay() - request.getStartDate().toEpochDay()) + 1;
         int totalPrice = listing.getPricePerDay() * totalDays;
-        int serviceFee = (int) (totalPrice * SERVICE_FEE_RATE);
 
         // Create booking
         Booking booking = Booking.builder()
@@ -82,13 +82,22 @@ public class BookingService {
                 .totalDays(totalDays)
                 .dailyRate(listing.getPricePerDay())
                 .totalPrice(totalPrice)
-                .depositAmount(listing.getDepositAmount())
-                .serviceFee(serviceFee)
                 .status(BookingStatus.REQUESTED)
                 .renterMessage(request.getMessage())
                 .build();
 
         Booking saved = bookingRepository.save(booking);
+
+        // Notify the listing owner about the new booking request
+        notificationService.createBookingNotification(
+                NotificationType.BOOKING_REQUESTED,
+                listing.getOwner(),
+                renter,
+                saved);
+
+        // Send email notification
+        emailService.sendBookingRequestEmail(saved);
+
         return BookingResponse.fromEntity(saved);
     }
 
@@ -148,6 +157,17 @@ public class BookingService {
         booking.setApprovedAt(LocalDateTime.now());
 
         Booking saved = bookingRepository.save(booking);
+
+        // Notify the renter that their booking was approved
+        notificationService.createBookingNotification(
+                NotificationType.BOOKING_APPROVED,
+                booking.getRenter(),
+                booking.getListing().getOwner(),
+                saved);
+
+        // Send email notification
+        emailService.sendBookingApprovedEmail(saved);
+
         return BookingResponse.fromEntity(saved);
     }
 
@@ -163,6 +183,17 @@ public class BookingService {
         booking.setOwnerResponse(request.getResponse());
 
         Booking saved = bookingRepository.save(booking);
+
+        // Notify the renter that their booking was rejected
+        notificationService.createBookingNotification(
+                NotificationType.BOOKING_REJECTED,
+                booking.getRenter(),
+                booking.getListing().getOwner(),
+                saved);
+
+        // Send email notification
+        emailService.sendBookingDeclinedEmail(saved);
+
         return BookingResponse.fromEntity(saved);
     }
 
@@ -177,8 +208,7 @@ public class BookingService {
 
         // Can only cancel bookings that aren't already completed or cancelled
         List<BookingStatus> cancellableStatuses = Arrays.asList(
-                BookingStatus.REQUESTED, BookingStatus.APPROVED, BookingStatus.PAID
-        );
+                BookingStatus.REQUESTED, BookingStatus.APPROVED);
         if (!cancellableStatuses.contains(booking.getStatus())) {
             throw new BadRequestException("This booking cannot be cancelled");
         }
@@ -189,23 +219,21 @@ public class BookingService {
         booking.setCancelledAt(LocalDateTime.now());
 
         Booking saved = bookingRepository.save(booking);
-        return BookingResponse.fromEntity(saved);
-    }
 
-    @Transactional
-    public BookingResponse markAsPaid(UUID bookingId) {
-        // This would normally be called by a payment webhook
-        Booking booking = bookingRepository.findByIdWithDetails(bookingId)
-                .orElseThrow(() -> new ResourceNotFoundException("Booking not found"));
+        // Notify the other party about the cancellation
+        User canceller = userId.equals(booking.getRenter().getId()) ? booking.getRenter()
+                : booking.getListing().getOwner();
+        User recipient = userId.equals(booking.getRenter().getId()) ? booking.getListing().getOwner()
+                : booking.getRenter();
+        notificationService.createBookingNotification(
+                NotificationType.BOOKING_CANCELLED,
+                recipient,
+                canceller,
+                saved);
 
-        if (booking.getStatus() != BookingStatus.APPROVED) {
-            throw new BadRequestException("Only approved bookings can be marked as paid");
-        }
+        // Send email notification
+        emailService.sendBookingCancelledEmail(saved, canceller);
 
-        booking.setStatus(BookingStatus.PAID);
-        booking.setPaidAt(LocalDateTime.now());
-
-        Booking saved = bookingRepository.save(booking);
         return BookingResponse.fromEntity(saved);
     }
 
@@ -213,14 +241,22 @@ public class BookingService {
     public BookingResponse startBooking(UUID ownerId, UUID bookingId) {
         Booking booking = getBookingForOwnerAction(ownerId, bookingId);
 
-        if (booking.getStatus() != BookingStatus.PAID) {
-            throw new BadRequestException("Only paid bookings can be started");
+        if (booking.getStatus() != BookingStatus.APPROVED) {
+            throw new BadRequestException("Only approved bookings can be started");
         }
 
         booking.setStatus(BookingStatus.ACTIVE);
         booking.setStartedAt(LocalDateTime.now());
 
         Booking saved = bookingRepository.save(booking);
+
+        // Notify the renter that rental has started
+        notificationService.createBookingNotification(
+                NotificationType.BOOKING_STARTED,
+                booking.getRenter(),
+                booking.getListing().getOwner(),
+                saved);
+
         return BookingResponse.fromEntity(saved);
     }
 
@@ -236,6 +272,17 @@ public class BookingService {
         booking.setCompletedAt(LocalDateTime.now());
 
         Booking saved = bookingRepository.save(booking);
+
+        // Notify the renter that rental has been completed
+        notificationService.createBookingNotification(
+                NotificationType.BOOKING_COMPLETED,
+                booking.getRenter(),
+                booking.getListing().getOwner(),
+                saved);
+
+        // Send email notification prompting for a review
+        emailService.sendBookingCompletedEmail(saved);
+
         return BookingResponse.fromEntity(saved);
     }
 

@@ -2,6 +2,7 @@ package com.rentease.service;
 
 import com.rentease.dto.request.CreateListingRequest;
 import com.rentease.dto.request.UpdateListingRequest;
+import com.rentease.dto.response.BookedDateRangeResponse;
 import com.rentease.dto.response.ListingResponse;
 import com.rentease.dto.response.ListingSummaryResponse;
 import com.rentease.dto.response.PagedResponse;
@@ -12,6 +13,7 @@ import com.rentease.entity.enums.Category;
 import com.rentease.exception.ForbiddenException;
 import com.rentease.exception.ResourceNotFoundException;
 import com.rentease.mapper.ListingMapper;
+import com.rentease.repository.BookingRepository;
 import com.rentease.repository.ListingImageRepository;
 import com.rentease.repository.ListingRepository;
 import com.rentease.repository.UserRepository;
@@ -24,6 +26,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -36,6 +39,7 @@ public class ListingService {
     private final ListingRepository listingRepository;
     private final ListingImageRepository listingImageRepository;
     private final UserRepository userRepository;
+    private final BookingRepository bookingRepository;
     private final ListingMapper listingMapper;
 
     @Transactional
@@ -106,12 +110,27 @@ public class ListingService {
             }
         }
 
-        if (categoryEnum != null && query != null && !query.isEmpty()) {
-            listingPage = listingRepository.searchByCategoryAndQuery(categoryEnum, query, pageable);
+        boolean hasQuery = query != null && !query.trim().isEmpty();
+        boolean useFullTextSearch = hasQuery && query.trim().length() >= 3;
+
+        if (categoryEnum != null && hasQuery) {
+            if (useFullTextSearch) {
+                // Use PostgreSQL full-text search for queries 3+ characters
+                listingPage = listingRepository.searchByCategoryAndQuery(categoryEnum.name(), query.trim(), pageable);
+            } else {
+                // Fallback to LIKE search for short queries
+                listingPage = listingRepository.searchByCategoryAndQueryFallback(categoryEnum, query.trim(), pageable);
+            }
         } else if (categoryEnum != null) {
             listingPage = listingRepository.findByCategory(categoryEnum, pageable);
-        } else if (query != null && !query.isEmpty()) {
-            listingPage = listingRepository.searchByQuery(query, pageable);
+        } else if (hasQuery) {
+            if (useFullTextSearch) {
+                // Use PostgreSQL full-text search for queries 3+ characters
+                listingPage = listingRepository.searchByQuery(query.trim(), pageable);
+            } else {
+                // Fallback to LIKE search for short queries
+                listingPage = listingRepository.searchByQueryFallback(query.trim(), pageable);
+            }
         } else {
             listingPage = listingRepository.findAllActive(pageable);
         }
@@ -267,6 +286,31 @@ public class ListingService {
         listingImageRepository.delete(image);
 
         log.info("Image {} removed from listing {}", imageId, listingId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ListingSummaryResponse> getRecentListings(int limit) {
+        Pageable pageable = PageRequest.of(0, Math.min(limit, 20));
+        List<Listing> listings = listingRepository.findRecentListings(pageable);
+        return listings.stream()
+                .map(listingMapper::toSummaryResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<BookedDateRangeResponse> getBookedDates(UUID listingId) {
+        // Verify listing exists
+        listingRepository.findByIdAndActiveTrue(listingId)
+                .orElseThrow(() -> new ResourceNotFoundException("Listing", "id", listingId));
+
+        // Get active bookings from today onwards
+        return bookingRepository.findActiveBookingsForListing(listingId, LocalDate.now())
+                .stream()
+                .map(booking -> BookedDateRangeResponse.builder()
+                        .startDate(booking.getStartDate())
+                        .endDate(booking.getEndDate())
+                        .build())
+                .collect(Collectors.toList());
     }
 
     private Pageable createPageable(int page, int size, String sort) {

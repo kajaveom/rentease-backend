@@ -13,9 +13,7 @@ public class AppConfig {
 
     private Jwt jwt = new Jwt();
     private Cloudinary cloudinary = new Cloudinary();
-    private Stripe stripe = new Stripe();
     private String frontendUrl;
-    private int serviceFeePercent;
 
     @Getter
     @Setter
@@ -31,12 +29,5 @@ public class AppConfig {
         private String cloudName;
         private String apiKey;
         private String apiSecret;
-    }
-
-    @Getter
-    @Setter
-    public static class Stripe {
-        private String secretKey;
-        private String webhookSecret;
     }
 }

@@ -42,8 +42,11 @@ public class SecurityConfig {
                         // Public endpoints
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers("/api/v1/health").permitAll()
+                        .requestMatchers("/actuator/health/**").permitAll()
+                        .requestMatchers("/actuator/info").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/listings/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/users/{id}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/users/{id}/listings").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/users/{id}/reviews").permitAll()
                         // All other endpoints require authentication
                         .anyRequest().authenticated())

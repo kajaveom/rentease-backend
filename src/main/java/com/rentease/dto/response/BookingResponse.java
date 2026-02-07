@@ -21,15 +21,12 @@ public class BookingResponse {
     private Integer totalDays;
     private Integer dailyRate;
     private Integer totalPrice;
-    private Integer depositAmount;
-    private Integer serviceFee;
     private BookingStatus status;
     private String renterMessage;
     private String ownerResponse;
     private String cancellationReason;
     private LocalDateTime createdAt;
     private LocalDateTime approvedAt;
-    private LocalDateTime paidAt;
     private LocalDateTime completedAt;
     private LocalDateTime cancelledAt;
 
@@ -56,15 +53,12 @@ public class BookingResponse {
                 .totalDays(booking.getTotalDays())
                 .dailyRate(booking.getDailyRate())
                 .totalPrice(booking.getTotalPrice())
-                .depositAmount(booking.getDepositAmount())
-                .serviceFee(booking.getServiceFee())
                 .status(booking.getStatus())
                 .renterMessage(booking.getRenterMessage())
                 .ownerResponse(booking.getOwnerResponse())
                 .cancellationReason(booking.getCancellationReason())
                 .createdAt(booking.getCreatedAt())
                 .approvedAt(booking.getApprovedAt())
-                .paidAt(booking.getPaidAt())
                 .completedAt(booking.getCompletedAt())
                 .cancelledAt(booking.getCancelledAt())
                 .build();

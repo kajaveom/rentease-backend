@@ -3,6 +3,7 @@ package com.rentease.controller;
 import com.rentease.dto.request.CreateListingRequest;
 import com.rentease.dto.request.UpdateListingRequest;
 import com.rentease.dto.response.ApiResponse;
+import com.rentease.dto.response.BookedDateRangeResponse;
 import com.rentease.dto.response.ListingResponse;
 import com.rentease.dto.response.ListingSummaryResponse;
 import com.rentease.dto.response.PagedResponse;
@@ -15,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -46,9 +48,22 @@ public class ListingController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/recent")
+    public ResponseEntity<ApiResponse<List<ListingSummaryResponse>>> getRecentListings(
+            @RequestParam(value = "limit", required = false, defaultValue = "8") int limit) {
+        List<ListingSummaryResponse> response = listingService.getRecentListings(limit);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<ListingResponse>> getListing(@PathVariable("id") UUID id) {
         ListingResponse response = listingService.getListingById(id);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @GetMapping("/{id}/booked-dates")
+    public ResponseEntity<ApiResponse<List<BookedDateRangeResponse>>> getBookedDates(@PathVariable("id") UUID id) {
+        List<BookedDateRangeResponse> response = listingService.getBookedDates(id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

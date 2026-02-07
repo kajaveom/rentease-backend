@@ -44,13 +44,7 @@ public class Booking {
     private Integer dailyRate; // Price per day at time of booking (cents)
 
     @Column(name = "total_price", nullable = false)
-    private Integer totalPrice; // Total rental price (cents)
-
-    @Column(name = "deposit_amount", nullable = false)
-    private Integer depositAmount; // Deposit required (cents)
-
-    @Column(name = "service_fee")
-    private Integer serviceFee; // Platform fee (cents)
+    private Integer totalPrice; // Total rental price estimate (cents)
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -78,9 +72,6 @@ public class Booking {
 
     @Column(name = "approved_at")
     private LocalDateTime approvedAt;
-
-    @Column(name = "paid_at")
-    private LocalDateTime paidAt;
 
     @Column(name = "started_at")
     private LocalDateTime startedAt;
