@@ -2,6 +2,12 @@
 # Activate with: SPRING_PROFILES_ACTIVE=prod
 
 spring:
+  # Exclude Redis auto-config on free tier
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisReactiveAutoConfiguration
+
   datasource:
     # Neon requires SSL
     hikari:
@@ -48,6 +54,11 @@ management:
       show-details: never  # Don't expose details in production
       probes:
         enabled: true
+  health:
+    redis:
+      enabled: false  # No Redis on free tier
+    mail:
+      enabled: false  # Skip mail health check (slow)
 
 # Logging - reduce verbosity
 logging:
