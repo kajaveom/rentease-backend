@@ -1,0 +1,59 @@
+# Production profile for Render deployment with Neon PostgreSQL
+# Activate with: SPRING_PROFILES_ACTIVE=prod
+
+spring:
+  datasource:
+    # Neon requires SSL
+    hikari:
+      maximum-pool-size: 3  # Free tier limit - keep connections low
+      minimum-idle: 1
+      connection-timeout: 20000
+      idle-timeout: 300000
+      max-lifetime: 900000
+      # Neon connection pooler compatibility
+      data-source-properties:
+        sslmode: require
+        prepareThreshold: 0
+
+  jpa:
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+
+  # Disable Redis on free tier (use simple cache)
+  cache:
+    type: simple
+
+  # Flyway
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+
+# Server configuration
+server:
+  port: ${PORT:8080}
+  tomcat:
+    max-threads: 10  # Reduce for memory
+    min-spare-threads: 2
+
+# Actuator - expose health for monitoring
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never  # Don't expose details in production
+      probes:
+        enabled: true
+
+# Logging - reduce verbosity
+logging:
+  level:
+    root: WARN
+    com.rentease: INFO
+    org.springframework.security: WARN
+    org.hibernate: WARN
+    com.zaxxer.hikari: WARN
