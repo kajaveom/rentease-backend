@@ -124,7 +124,13 @@ public class MessageService {
         User recipient = conversation.getParticipant1().getId().equals(senderId)
                 ? conversation.getParticipant2()
                 : conversation.getParticipant1();
-        emailService.sendNewMessageEmail(recipient, sender, conversation.getListing().getTitle());
+        emailService.sendNewMessageEmail(
+                recipient.getEmail(),
+                recipient.getFirstName(),
+                sender.getFirstName(),
+                sender.getLastName(),
+                conversation.getListing().getTitle()
+        );
 
         return MessageResponse.fromEntity(saved);
     }
@@ -184,7 +190,13 @@ public class MessageService {
         messageRepository.save(message);
 
         // Send email notification to the recipient
-        emailService.sendNewMessageEmail(recipient, sender, listing.getTitle());
+        emailService.sendNewMessageEmail(
+                recipient.getEmail(),
+                recipient.getFirstName(),
+                sender.getFirstName(),
+                sender.getLastName(),
+                listing.getTitle()
+        );
 
         return ConversationResponse.fromEntity(savedConversation, senderId, 0L);
     }

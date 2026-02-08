@@ -19,6 +19,9 @@ import com.rentease.repository.ListingRepository;
 import com.rentease.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -43,6 +46,7 @@ public class ListingService {
     private final ListingMapper listingMapper;
 
     @Transactional
+    @CacheEvict(value = "recentListings", allEntries = true)
     public ListingResponse createListing(UUID userId, CreateListingRequest request) {
         User owner = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
@@ -81,6 +85,7 @@ public class ListingService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "listing", key = "#listingId")
     public ListingResponse getListingById(UUID listingId) {
         Listing listing = listingRepository.findByIdAndActiveTrue(listingId)
                 .orElseThrow(() -> new ResourceNotFoundException("Listing", "id", listingId));
@@ -186,6 +191,10 @@ public class ListingService {
     }
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "listing", key = "#listingId"),
+            @CacheEvict(value = "recentListings", allEntries = true)
+    })
     public ListingResponse updateListing(UUID userId, UUID listingId, UpdateListingRequest request) {
         Listing listing = listingRepository.findByIdAndActiveTrue(listingId)
                 .orElseThrow(() -> new ResourceNotFoundException("Listing", "id", listingId));
@@ -228,6 +237,10 @@ public class ListingService {
     }
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "listing", key = "#listingId"),
+            @CacheEvict(value = "recentListings", allEntries = true)
+    })
     public void deleteListing(UUID userId, UUID listingId) {
         Listing listing = listingRepository.findByIdAndActiveTrue(listingId)
                 .orElseThrow(() -> new ResourceNotFoundException("Listing", "id", listingId));
@@ -243,6 +256,7 @@ public class ListingService {
     }
 
     @Transactional
+    @CacheEvict(value = "listing", key = "#listingId")
     public ListingResponse addImage(UUID userId, UUID listingId, String imageUrl, String publicId) {
         Listing listing = listingRepository.findByIdAndActiveTrue(listingId)
                 .orElseThrow(() -> new ResourceNotFoundException("Listing", "id", listingId));
@@ -269,6 +283,7 @@ public class ListingService {
     }
 
     @Transactional
+    @CacheEvict(value = "listing", key = "#listingId")
     public void deleteImage(UUID userId, UUID listingId, UUID imageId) {
         Listing listing = listingRepository.findByIdAndActiveTrue(listingId)
                 .orElseThrow(() -> new ResourceNotFoundException("Listing", "id", listingId));
@@ -289,6 +304,7 @@ public class ListingService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "recentListings", key = "#limit")
     public List<ListingSummaryResponse> getRecentListings(int limit) {
         Pageable pageable = PageRequest.of(0, Math.min(limit, 20));
         List<Listing> listings = listingRepository.findRecentListings(pageable);

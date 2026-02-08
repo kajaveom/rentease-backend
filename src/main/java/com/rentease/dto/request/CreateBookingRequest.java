@@ -1,6 +1,6 @@
 package com.rentease.dto.request;
 
-import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
@@ -11,11 +11,11 @@ import java.time.LocalDate;
 public class CreateBookingRequest {
 
     @NotNull(message = "Start date is required")
-    @Future(message = "Start date must be in the future")
+    @FutureOrPresent(message = "Start date must be today or in the future")
     private LocalDate startDate;
 
     @NotNull(message = "End date is required")
-    @Future(message = "End date must be in the future")
+    @FutureOrPresent(message = "End date must be today or in the future")
     private LocalDate endDate;
 
     @Size(max = 500, message = "Message must be less than 500 characters")

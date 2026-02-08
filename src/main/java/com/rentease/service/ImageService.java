@@ -1,6 +1,7 @@
 package com.rentease.service;
 
 import com.cloudinary.Cloudinary;
+import com.cloudinary.Transformation;
 import com.cloudinary.utils.ObjectUtils;
 import com.rentease.exception.BadRequestException;
 import lombok.RequiredArgsConstructor;
@@ -36,17 +37,18 @@ public class ImageService {
         try {
             String publicId = folder + "/" + UUID.randomUUID().toString();
 
+            // Eager transformation using Cloudinary Transformation class
+            Transformation transformation = new Transformation()
+                    .quality(quality)
+                    .fetchFormat("auto")
+                    .width(maxWidth)
+                    .crop("limit");
+
             Map<String, Object> options = ObjectUtils.asMap(
                     "public_id", publicId,
                     "folder", "rentease",
                     "resource_type", "image",
-                    // Optimization transformations
-                    "transformation", ObjectUtils.asMap(
-                            "quality", quality,
-                            "fetch_format", "auto",  // Automatically serve WebP/AVIF
-                            "width", maxWidth,
-                            "crop", "limit"          // Only resize if larger than maxWidth
-                    )
+                    "eager", List.of(transformation)
             );
 
             Map<?, ?> result = cloudinary.uploader().upload(file.getBytes(), options);

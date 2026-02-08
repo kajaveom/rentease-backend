@@ -2,6 +2,7 @@ package com.rentease.service;
 
 import com.rentease.entity.Booking;
 import com.rentease.entity.User;
+import com.rentease.repository.BookingRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -9,10 +10,12 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import java.time.format.DateTimeFormatter;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -20,6 +23,7 @@ import java.time.format.DateTimeFormatter;
 public class EmailService {
 
     private final JavaMailSender mailSender;
+    private final BookingRepository bookingRepository;
 
     @Value("${app.frontend-url}")
     private String frontendUrl;
@@ -30,7 +34,14 @@ public class EmailService {
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("MMM d, yyyy");
 
     @Async
-    public void sendBookingRequestEmail(Booking booking) {
+    @Transactional(readOnly = true)
+    public void sendBookingRequestEmail(UUID bookingId) {
+        Booking booking = bookingRepository.findById(bookingId).orElse(null);
+        if (booking == null) {
+            log.warn("Booking not found for email: {}", bookingId);
+            return;
+        }
+
         User owner = booking.getListing().getOwner();
         User renter = booking.getRenter();
 
@@ -61,7 +72,14 @@ public class EmailService {
     }
 
     @Async
-    public void sendBookingApprovedEmail(Booking booking) {
+    @Transactional(readOnly = true)
+    public void sendBookingApprovedEmail(UUID bookingId) {
+        Booking booking = bookingRepository.findById(bookingId).orElse(null);
+        if (booking == null) {
+            log.warn("Booking not found for email: {}", bookingId);
+            return;
+        }
+
         User renter = booking.getRenter();
         User owner = booking.getListing().getOwner();
 
@@ -91,7 +109,14 @@ public class EmailService {
     }
 
     @Async
-    public void sendBookingDeclinedEmail(Booking booking) {
+    @Transactional(readOnly = true)
+    public void sendBookingDeclinedEmail(UUID bookingId) {
+        Booking booking = bookingRepository.findById(bookingId).orElse(null);
+        if (booking == null) {
+            log.warn("Booking not found for email: {}", bookingId);
+            return;
+        }
+
         User renter = booking.getRenter();
         User owner = booking.getListing().getOwner();
 
@@ -119,11 +144,18 @@ public class EmailService {
     }
 
     @Async
-    public void sendBookingCancelledEmail(Booking booking, User cancelledBy) {
+    @Transactional(readOnly = true)
+    public void sendBookingCancelledEmail(UUID bookingId, UUID cancelledById) {
+        Booking booking = bookingRepository.findById(bookingId).orElse(null);
+        if (booking == null) {
+            log.warn("Booking not found for email: {}", bookingId);
+            return;
+        }
+
         User recipient;
         String canceller;
 
-        if (cancelledBy.getId().equals(booking.getRenter().getId())) {
+        if (cancelledById.equals(booking.getRenter().getId())) {
             recipient = booking.getListing().getOwner();
             canceller = "The renter";
         } else {
@@ -154,7 +186,14 @@ public class EmailService {
     }
 
     @Async
-    public void sendBookingCompletedEmail(Booking booking) {
+    @Transactional(readOnly = true)
+    public void sendBookingCompletedEmail(UUID bookingId) {
+        Booking booking = bookingRepository.findById(bookingId).orElse(null);
+        if (booking == null) {
+            log.warn("Booking not found for email: {}", bookingId);
+            return;
+        }
+
         User renter = booking.getRenter();
 
         String subject = "How was your rental? Leave a review!";
@@ -174,23 +213,24 @@ public class EmailService {
     }
 
     @Async
-    public void sendNewMessageEmail(User recipient, User sender, String listingTitle) {
-        String subject = "New message from " + sender.getFirstName();
+    public void sendNewMessageEmail(String recipientEmail, String recipientFirstName,
+                                     String senderFirstName, String senderLastName, String listingTitle) {
+        String subject = "New message from " + senderFirstName;
         String body = buildEmailTemplate(
-            recipient.getFirstName(),
+            recipientFirstName,
             "New Message",
             String.format(
                 "<p><strong>%s %s</strong> sent you a message about <strong>%s</strong>.</p>" +
                 "<p>Log in to RentEase to view and reply to the message.</p>",
-                sender.getFirstName(),
-                sender.getLastName(),
+                senderFirstName,
+                senderLastName,
                 listingTitle
             ),
             frontendUrl + "/messages",
             "View Messages"
         );
 
-        sendEmail(recipient.getEmail(), subject, body);
+        sendEmail(recipientEmail, subject, body);
     }
 
     private String buildEmailTemplate(String recipientName, String heading, String content, String buttonUrl, String buttonText) {

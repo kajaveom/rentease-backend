@@ -96,7 +96,7 @@ public class BookingService {
                 saved);
 
         // Send email notification
-        emailService.sendBookingRequestEmail(saved);
+        emailService.sendBookingRequestEmail(saved.getId());
 
         return BookingResponse.fromEntity(saved);
     }
@@ -166,7 +166,7 @@ public class BookingService {
                 saved);
 
         // Send email notification
-        emailService.sendBookingApprovedEmail(saved);
+        emailService.sendBookingApprovedEmail(saved.getId());
 
         return BookingResponse.fromEntity(saved);
     }
@@ -192,7 +192,7 @@ public class BookingService {
                 saved);
 
         // Send email notification
-        emailService.sendBookingDeclinedEmail(saved);
+        emailService.sendBookingDeclinedEmail(saved.getId());
 
         return BookingResponse.fromEntity(saved);
     }
@@ -232,7 +232,7 @@ public class BookingService {
                 saved);
 
         // Send email notification
-        emailService.sendBookingCancelledEmail(saved, canceller);
+        emailService.sendBookingCancelledEmail(saved.getId(), userId);
 
         return BookingResponse.fromEntity(saved);
     }
@@ -281,7 +281,7 @@ public class BookingService {
                 saved);
 
         // Send email notification prompting for a review
-        emailService.sendBookingCompletedEmail(saved);
+        emailService.sendBookingCompletedEmail(saved.getId());
 
         return BookingResponse.fromEntity(saved);
     }
